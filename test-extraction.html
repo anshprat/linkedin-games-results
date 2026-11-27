@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Data Extraction</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #0a66c2;
+      margin-top: 0;
+    }
+    button {
+      background: #0a66c2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #004182;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .success {
+      color: #155724;
+      background: #d4edda;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .error {
+      color: #721c24;
+      background: #f8d7da;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .warning {
+      color: #856404;
+      background: #fff3cd;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Extension Debugging Tool</h1>
+    <p>Use this page to diagnose why the extension isn't collecting data.</p>
+
+    <div class="section">
+      <h3>Step 1: Check Background Service Worker</h3>
+      <button onclick="openServiceWorker()">Open Background Console</button>
+      <p>This will open the service worker console where you can see logs.</p>
+    </div>
+
+    <div class="section">
+      <h3>Step 2: Check Storage</h3>
+      <button onclick="checkStorage()">Check Chrome Storage</button>
+      <div id="storageResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 3: Check Alarms</h3>
+      <button onclick="checkAlarms()">Check Active Alarms</button>
+      <div id="alarmsResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 4: Test Single Game</h3>
+      <button onclick="testSingleGame()">Test Zip Game</button>
+      <p>This will open a LinkedIn game page and try to extract data.</p>
+      <div id="testResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 5: Manual Extraction Test</h3>
+      <button onclick="openGamePage()">Open Zip Game Page</button>
+      <p>After the page opens, check the console on that page for "LinkedIn Games Stats Tracker content script loaded"</p>
+      <div class="warning">
+        <strong>Important:</strong> You must be logged into LinkedIn for this to work.
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Step 6: Check Permissions</h3>
+      <button onclick="checkPermissions()">Check Permissions</button>
+      <div id="permissionsResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 7: Clear Storage (Reset)</h3>
+      <button onclick="clearStorage()" style="background: #dc3545;">Clear All Data</button>
+      <div id="clearResult"></div>
+    </div>
+  </div>
+
+  <script>
+    function openServiceWorker() {
+      alert('Go to chrome://extensions/ and click "Inspect views: service worker" under LinkedIn Games Stats Tracker');
+    }
+
+    async function checkStorage() {
+      const result = document.getElementById('storageResult');
+      try {
+        const data = await chrome.storage.local.get(['gameStats', 'fileContent', 'lastUpdated', 'scheduleHour', 'scheduleMinute']);
+        result.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+
+        if (!data.gameStats || data.gameStats.length === 0) {
+          result.innerHTML += '<div class="warning">⚠️ No game stats found in storage</div>';
+        } else {
+          result.innerHTML += '<div class="success">✓ Found ' + data.gameStats.length + ' stats entries</div>';
+        }
+      } catch (error) {
+        result.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+      }
+    }
+
+    async function checkAlarms() {
+      const result = document.getElementById('alarmsResult');
+      try {
+        const alarms = await chrome.alarms.getAll();
+        result.innerHTML = '<pre>' + JSON.stringify(alarms, null, 2) + '</pre>';
+
+        if (alarms.length === 0) {
+          result.innerHTML += '<div class="warning">⚠️ No alarms set!</div>';
+        } else {
+          const nextAlarm = alarms.find(a => a.name === 'dailyGameCheck');
+          if (nextAlarm) {
+            const nextTime = new Date(nextAlarm.scheduledTime);
+            result.innerHTML += '<div class="success">✓ Next alarm: ' + nextTime.toLocaleString() + '</div>';
+          }
+        }
+      } catch (error) {
+        result.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+      }
+    }
+
+    async function testSingleGame() {
+      const result = document.getElementById('testResult');
+      result.innerHTML = '<div class="warning">Opening game page...</div>';
+
+      try {
+        const tab = await chrome.tabs.create({
+          url: 'https://www.linkedin.com/games/zip/results/',
+          active: true
+        });
+
+        result.innerHTML += '<div class="success">✓ Tab opened (ID: ' + tab.id + ')</div>';
+        result.innerHTML += '<div class="warning">Waiting for page to load...</div>';
+
+        // Wait for page to load
+        setTimeout(async () => {
+          try {
+            const response = await chrome.tabs.sendMessage(tab.id, { action: 'extract' });
+            result.innerHTML += '<div class="success">✓ Response received:</div>';
+            result.innerHTML += '<pre>' + JSON.stringify(response, null, 2) + '</pre>';
+
+            if (response && response.count) {
+              result.innerHTML += '<div class="success">✓✓ SUCCESS! Found ' + response.count + ' connections</div>';
+            } else {
+              result.innerHTML += '<div class="error">✗ No data extracted. Check console on the game page.</div>';
+            }
+          } catch (error) {
+            result.innerHTML += '<div class="error">✗ Error: ' + error.message + '</div>';
+            result.innerHTML += '<div class="warning">Check if content script is loaded on the page.</div>';
+          }
+        }, 5000);
+
+      } catch (error) {
+        result.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+      }
+    }
+
+    function openGamePage() {
+      chrome.tabs.create({ url: 'https://www.linkedin.com/games/zip/results/' });
+      alert('Game page opened. Right-click on that page > Inspect > Console tab. Look for "LinkedIn Games Stats Tracker content script loaded"');
+    }
+
+    async function checkPermissions() {
+      const result = document.getElementById('permissionsResult');
+      try {
+        const permissions = await chrome.permissions.getAll();
+        result.innerHTML = '<pre>' + JSON.stringify(permissions, null, 2) + '</pre>';
+      } catch (error) {
+        result.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+      }
+    }
+
+    async function clearStorage() {
+      const result = document.getElementById('clearResult');
+      if (!confirm('Are you sure you want to clear all data?')) return;
+
+      try {
+        await chrome.storage.local.clear();
+        result.innerHTML = '<div class="success">✓ Storage cleared</div>';
+      } catch (error) {
+        result.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Games Stats</title>
+  <style>
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 15px 0;
+      color: #0a66c2;
+    }
+
+    .info {
+      background: #f3f6f8;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .info strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .primary-btn {
+      background: #0a66c2;
+      color: white;
+    }
+
+    .primary-btn:hover {
+      background: #004182;
+    }
+
+    .secondary-btn {
+      background: #e8e8e8;
+      color: #333;
+    }
+
+    .secondary-btn:hover {
+      background: #d0d0d0;
+    }
+
+    .stats {
+      margin-top: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .stat-item {
+      padding: 8px;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .game-name {
+      font-weight: 600;
+      color: #0a66c2;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .status {
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .settings-link {
+      text-align: center;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e8e8e8;
+    }
+
+    .settings-link a {
+      color: #0a66c2;
+      text-decoration: none;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .settings-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>LinkedIn Games Stats Tracker</h1>
+
+  <div class="info" id="scheduleInfo">
+    <strong>Scheduled Check:</strong>
+    <span id="scheduleTime">Loading...</span>
+  </div>
+
+  <div id="lastUpdated" class="info" style="display: none;">
+    <strong>Last Updated:</strong>
+    <span id="lastUpdateTime"></span>
+  </div>
+
+  <button id="checkNow" class="primary-btn">Check Games Now</button>
+  <button id="downloadBtn" class="secondary-btn">Download results.txt</button>
+  <button id="viewStats" class="secondary-btn">View All Stats</button>
+
+  <div id="status"></div>
+
+  <div id="stats" class="stats"></div>
+
+  <div class="settings-link">
+    <a href="#" id="settingsLink">⚙️ Settings</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
